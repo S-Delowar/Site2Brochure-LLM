@@ -1,6 +1,10 @@
 import asyncio
+import sys
 from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
+
+from utils.exception import CustomException
+from utils.logger import logging
 
 class Website:
     def __init__(self, url):
@@ -8,9 +12,9 @@ class Website:
         self.title = ""
         self.text = ""
         self.links = []
-        asyncio.run(self._scrape_website())  # Now works!
+        asyncio.run(self._scrape_website())
 
-    async def _scrape_website(self):  # Properly defined as a class method
+    async def _scrape_website(self):  
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True)
             page = await browser.new_page()
@@ -19,6 +23,7 @@ class Website:
                 await page.goto(self.url, timeout=60000)
                 html = await page.content()   
                 soup = BeautifulSoup(html, 'html.parser')
+                logging.info(f"Successfully parse html sections")
                 
                 self.title = soup.title.string if soup.title else "No title found"
                 
@@ -31,20 +36,21 @@ class Website:
                 self.links = [link for link in links if link]
 
             except Exception as e:
-                print(f"Error: {str(e)}")  # Better than raise str(e)
+                CustomException(sys, e) 
 
             finally:
-                await browser.close()  # Fixed: Added await
+                await browser.close() 
 
     def get_content(self):
+        
         return f"Webpage Title:\n{self.title}\nWebpage Content:\n{self.text}\n"
     
     
     
 if __name__ == "__main__":
-    print("Scraping Rokomari Wb")
+    wb_link = "https://sayed-delowar.netlify.app/"
     try:
-        wb = Website("https://sayed-delowar.netlify.app/")
+        wb = Website(wb_link)
     
         if wb:
             print(f"Title: {wb.title}")
