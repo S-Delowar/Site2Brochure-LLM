@@ -1,0 +1,7 @@
+jupyterlab
+python-dotenv
+tqdm
+beautifulsoup4
+playwright
+openai
+gradio
