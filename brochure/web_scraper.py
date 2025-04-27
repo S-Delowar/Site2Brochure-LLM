@@ -8,6 +8,7 @@ from utils.logger import logging
 
 class Website:
     def __init__(self, url):
+        logging.info("Initializing Website object")
         self.url = url
         self.title = ""
         self.text = ""
@@ -23,7 +24,7 @@ class Website:
                 await page.goto(self.url, timeout=60000)
                 html = await page.content()   
                 soup = BeautifulSoup(html, 'html.parser')
-                logging.info(f"Successfully parse html sections")
+                logging.info(f"Successfully parsed html sections")
                 
                 self.title = soup.title.string if soup.title else "No title found"
                 
@@ -34,7 +35,7 @@ class Website:
                 
                 links = [link.get("href") for link in soup.find_all('a')]
                 self.links = [link for link in links if link]
-
+                logging.info("Extracted text and links")
             except Exception as e:
                 CustomException(sys, e) 
 
@@ -42,8 +43,9 @@ class Website:
                 await browser.close() 
 
     def get_content(self):
-        
+        logging.info("Creating website content")
         return f"Webpage Title:\n{self.title}\nWebpage Content:\n{self.text}\n"
+    
     
     
     
@@ -54,7 +56,6 @@ if __name__ == "__main__":
     
         if wb:
             print(f"Title: {wb.title}")
-        
             links = wb.links
             print(f"Total Number of Links: {len(links)}")
             # print(wb.get_content())
