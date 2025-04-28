@@ -1,12 +1,14 @@
-
-
-
 import logging
+import time
 
 from openai import OpenAI
 from brochure.link_selector import get_useful_links_with_openai
 from brochure.web_scraper import Website
-from config import MODEL, OPENAI_API_KEY
+from config import OPENAI_API_KEY, MODEL
+
+
+openai = OpenAI(api_key=OPENAI_API_KEY)
+
 
 
 def get_all_details(url):
@@ -44,10 +46,9 @@ def get_brochure_user_prompt(company_name, url):
 
 
 # Create gpt agent for creating the brochure
-def stream_brochure(company_name, url):
+def generate_brochure_streaming(company_name, url):
     logging.info("Creating GPT-4o-mini agent to generate brochure")
 
-    openai = OpenAI(api_key=OPENAI_API_KEY)
     stream = openai.chat.completions.create(
         model = MODEL,
         messages = [
@@ -56,16 +57,68 @@ def stream_brochure(company_name, url):
         ],
         stream = True
     )
-    
     logging.info("Generating brochure in chunk by chunk")
+    buffer = ""
+    in_markdown_block = False
     for chunk in stream:
         content = chunk.choices[0].delta.content
-        yield content
-        
-        
+        if content:
+            if "**" in content:
+                in_markdown_block = not in_markdown_block
+            buffer += content
+
+            # If buffer has a newline or ends with a period, yield it
+            if (buffer.endswith(("\n\n", ".\n", "!\n", "?\n")) and not in_markdown_block) or len(buffer) > 200:
+                yield buffer
+                buffer = ""
+
+    # After streaming ends, yield anything left
+    if buffer.strip():
+        yield buffer
+    
+    # markdown_chunks = [
+    #     "# Welcome to My Project\n",
+    #     "\n",
+    #     "## Introduction\n",
+    #     "This project is designed to **showcase** my skills in:\n",
+    #     "- Python 🐍\n",
+    #     "- Machine Learning 🤖\n",
+    #     "- Web Development 🌐\n",
+    #     "\n",
+    #     "## Features\n",
+    #     "- User authentication 🔒\n",
+    #     "- Responsive design 📱\n",
+    #     "- Real-time updates ⚡\n",
+    #     "\n",
+    #     "## Installation\n",
+    #     "```bash\n",
+    #     "git clone https://github.com/your-username/your-project.git\n",
+    #     "cd your-project\n",
+    #     "pip install -r requirements.txt\n",
+    #     "```\n",
+    #     "\n",
+    #     "## Usage\n",
+    #     "```python\n",
+    #     "from my_project import app\n",
+    #     "app.run()\n",
+    #     "```\n",
+    #     "\n",
+    #     "## License\n",
+    #     "This project is licensed under the [MIT License](LICENSE).\n",
+    #     "\n",
+    #     "---\n",
+    #     "\n",
+    #     "*Made with ❤️ by [Your Name](https://yourwebsite.com)*\n"
+    # ]
+    # logging.info("Generating brochure in chunk by chunk")
+    # for chunk in markdown_chunks:
+    #     yield chunk
+    #     time.sleep(0.1)
+    
+    
 if __name__ == "__main__":
     # Object - brochure generator
-    brochure = stream_brochure("Rokomari", "https://www.rokomari.com/")
+    brochure = generate_brochure_streaming("Rokomari", "https://www.rokomari.com/")
 
     # iteration on the generator to see the content
     for chunk in brochure:

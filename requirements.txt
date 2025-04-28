@@ -6,3 +6,7 @@ playwright
 openai
 gradio
 flask
+fpdf2
+gunicorn
+markdown
+pdfkit

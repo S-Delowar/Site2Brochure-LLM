@@ -6,6 +6,9 @@ from config import MODEL, OPENAI_API_KEY
 import logging
 
 
+openai = OpenAI(api_key=OPENAI_API_KEY)
+
+
 # Define system prompt for the useful link selector agent
 link_system_prompt = "You are provided with a list of links found on a webpage. \
 You are able to decide which of the links would be most relevant to include in a brochure about the company, \
@@ -35,8 +38,7 @@ Do not include Terms of Service, Privacy, email links.\n"
 # Agent for selecting useful link for brochure
 def get_useful_links_with_openai(url):
     website = Website(url)
-    # Setup openai key
-    openai = OpenAI(api_key=OPENAI_API_KEY)
+
     logging.info("Generating useful links with GPT-4o-mini")
     response = openai.chat.completions.create(
         model = MODEL,
@@ -53,8 +55,8 @@ def get_useful_links_with_openai(url):
         
 
 if __name__ == "__main__":
-    
-    # links_for_brochure = get_useful_links_with_openai("https://rokomari.com/")
-    # print(links_for_brochure)
-    website = Website("https://rokomari.com/")
-    # print(get_links_user_prompt(website))
+    wb_url = "https://www.rokomari.com/"
+    brochure_links = get_useful_links_with_openai(wb_url)
+    print(brochure_links)
+    print(type(brochure_links))
+ 

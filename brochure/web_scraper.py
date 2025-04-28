@@ -37,7 +37,8 @@ class Website:
                 self.links = [link for link in links if link]
                 logging.info("Extracted text and links")
             except Exception as e:
-                CustomException(sys, e) 
+                # CustomException(sys, e) 
+                raise str(e)
 
             finally:
                 await browser.close() 
@@ -50,7 +51,7 @@ class Website:
     
     
 if __name__ == "__main__":
-    wb_link = "https://sayed-delowar.netlify.app/"
+    wb_link = "https://www.rokomari.com"
     try:
         wb = Website(wb_link)
     
@@ -58,7 +59,7 @@ if __name__ == "__main__":
             print(f"Title: {wb.title}")
             links = wb.links
             print(f"Total Number of Links: {len(links)}")
-            # print(wb.get_content())
+            print(f"Content: {wb.get_content()[:300]}")
             print(links[:10])
         else:
             print("No website found")
